@@ -7,14 +7,19 @@ using mudworld;
 public class PlayerComponent : MUDComponent
 {
     public static PlayerComponent LocalPlayer;
+
     public bool IsLocalPlayer;
+    public PositionComponent position;
 
     protected override void PostInit() {
         base.PostInit();
 
-        // add to CameraControl's Targets array
-        var cameraControl = GameObject.Find("CameraRig").GetComponent<CameraControl>();
-        cameraControl.m_Targets.Add(transform);
+        position = Entity.GetMUDComponent<PositionComponent>();
+
+        if(IsLocalPlayer) {
+            var cameraControl = GameObject.Find("CameraRig").GetComponent<CameraControl>();
+            cameraControl.m_Targets.Add(transform);
+        }
 
     }
     

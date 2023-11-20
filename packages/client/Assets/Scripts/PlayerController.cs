@@ -13,7 +13,6 @@ public class PlayerController : MonoBehaviour
     public PlayerComponent player;
     private Camera _camera;
     private Vector3 destination;
-    private PositionComponent posComponent;
 
     public GameObject destinationMarker;
 
@@ -30,13 +29,11 @@ public class PlayerController : MonoBehaviour
 
         var ds = NetworkManager.Instance.ds;
 
-        posComponent.OnUpdated += UpdatePosition;
-
     }
 
 
     void UpdatePosition() {
-        destination = posComponent.position;   
+        destination = player.position.position;   
     }
 
     // TODO: Send tx
@@ -93,7 +90,7 @@ public class PlayerController : MonoBehaviour
         } else {
             destinationMarker.SetActive(false);
         }
-        
+
     }
 
     private void OnDestroy()
