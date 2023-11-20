@@ -2,122 +2,108 @@
 
 #nullable enable
 using System;
-using mud.Client;
-using mud.Network.schemas;
-using mud.Unity;
+using mud;
 using UniRx;
 using Property = System.Collections.Generic.Dictionary<string, object>;
 
-namespace DefaultNamespace
+namespace mudworld
 {
-    public class PlayerTableUpdate : TypedRecordUpdate<Tuple<PlayerTable?, PlayerTable?>> { }
-
-    public class PlayerTable : IMudTable
+    public class PlayerTable : MUDTable
     {
-        public static readonly TableId TableId = new("", "Player");
-
-        public bool? value;
-
-        public static IObservable<PlayerTableUpdate> OnRecordUpdate()
+        public class PlayerTableUpdate : RecordUpdate
         {
-            return NetworkManager.Instance.ds.OnDataStoreUpdate
-                .Where(
-                    update =>
-                        update.TableId == TableId.ToString() && update.Type == UpdateType.SetField
-                )
-                .Select(
-                    update =>
-                        new PlayerTableUpdate
-                        {
-                            TableId = update.TableId,
-                            Key = update.Key,
-                            Value = update.Value,
-                            TypedValue = MapUpdates(update.Value)
-                        }
-                );
+            public bool? Value;
+            public bool? PreviousValue;
         }
 
-        public static IObservable<PlayerTableUpdate> OnRecordInsert()
+        public readonly static string ID = "Player";
+        public static RxTable Table
         {
-            return NetworkManager.Instance.ds.OnDataStoreUpdate
-                .Where(
-                    update =>
-                        update.TableId == TableId.ToString() && update.Type == UpdateType.SetRecord
-                )
-                .Select(
-                    update =>
-                        new PlayerTableUpdate
-                        {
-                            TableId = update.TableId,
-                            Key = update.Key,
-                            Value = update.Value,
-                            TypedValue = MapUpdates(update.Value)
-                        }
-                );
+            get { return NetworkManager.Instance.ds.store[ID]; }
         }
 
-        public static IObservable<PlayerTableUpdate> OnRecordDelete()
+        public override string GetTableId()
         {
-            return NetworkManager.Instance.ds.OnDataStoreUpdate
-                .Where(
-                    update =>
-                        update.TableId == TableId.ToString()
-                        && update.Type == UpdateType.DeleteRecord
-                )
-                .Select(
-                    update =>
-                        new PlayerTableUpdate
-                        {
-                            TableId = update.TableId,
-                            Key = update.Key,
-                            Value = update.Value,
-                            TypedValue = MapUpdates(update.Value)
-                        }
-                );
+            return ID;
         }
 
-        public static Tuple<PlayerTable?, PlayerTable?> MapUpdates(
-            Tuple<Property?, Property?> value
-        )
-        {
-            PlayerTable? current = null;
-            PlayerTable? previous = null;
+        public bool? Value;
 
-            if (value.Item1 != null)
+        public override Type TableType()
+        {
+            return typeof(PlayerTable);
+        }
+
+        public override Type TableUpdateType()
+        {
+            return typeof(PlayerTableUpdate);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            PlayerTable other = (PlayerTable)obj;
+
+            if (other == null)
             {
-                try
+                return false;
+            }
+            if (Value != other.Value)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public override void SetValues(params object[] functionParameters)
+        {
+            Value = (bool)functionParameters[0];
+        }
+
+        public static IObservable<RecordUpdate> GetPlayerTableUpdates()
+        {
+            PlayerTable mudTable = new PlayerTable();
+
+            return NetworkManager.Instance.sync.onUpdate
+                .Where(update => update.Table.Name == ID)
+                .Select(recordUpdate =>
                 {
-                    current = new PlayerTable
-                    {
-                        value = value.Item1.TryGetValue("value", out var valueVal)
-                            ? (bool)valueVal
-                            : default,
-                    };
-                }
-                catch (InvalidCastException)
-                {
-                    current = new PlayerTable { value = null, };
-                }
+                    return mudTable.RecordUpdateToTyped(recordUpdate);
+                });
+        }
+
+        public override void PropertyToTable(Property property)
+        {
+            Value = (bool)property["value"];
+        }
+
+        public override RecordUpdate RecordUpdateToTyped(RecordUpdate recordUpdate)
+        {
+            var currentValue = recordUpdate.CurrentRecordValue as Property;
+            var previousValue = recordUpdate.PreviousRecordValue as Property;
+            bool? currentValueTyped = null;
+            bool? previousValueTyped = null;
+
+            if (currentValue != null && currentValue.ContainsKey("value"))
+            {
+                currentValueTyped = (bool)currentValue["value"];
             }
 
-            if (value.Item2 != null)
+            if (previousValue != null && previousValue.ContainsKey("value"))
             {
-                try
-                {
-                    previous = new PlayerTable
-                    {
-                        value = value.Item2.TryGetValue("value", out var valueVal)
-                            ? (bool)valueVal
-                            : default,
-                    };
-                }
-                catch (InvalidCastException)
-                {
-                    previous = new PlayerTable { value = null, };
-                }
+                previousValueTyped = (bool)previousValue["value"];
             }
 
-            return new Tuple<PlayerTable?, PlayerTable?>(current, previous);
+            return new PlayerTableUpdate
+            {
+                Table = recordUpdate.Table,
+                CurrentRecordValue = recordUpdate.CurrentRecordValue,
+                PreviousRecordValue = recordUpdate.PreviousRecordValue,
+                CurrentRecordKey = recordUpdate.CurrentRecordKey,
+                PreviousRecordKey = recordUpdate.PreviousRecordKey,
+                Type = recordUpdate.Type,
+                Value = currentValueTyped,
+                PreviousValue = previousValueTyped,
+            };
         }
     }
 }

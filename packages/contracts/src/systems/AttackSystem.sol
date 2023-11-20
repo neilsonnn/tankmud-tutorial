@@ -11,14 +11,14 @@ contract AttackSystem is System {
     bytes32 player = Helpers.addressToEntityKey(address(_msgSender()));
     IWorld world = IWorld(_world());
 
-    PositionData[] memory neighbors = mooreNeighborhood(PositionData(x, y)); 
+    PositionData[] memory neighbors = mooreNeighborhood(PositionData(x, y));
 
     for (uint i = 0; i < neighbors.length; i++) {
       PositionData memory neighbor = neighbors[i];
       bytes32[] memory atPosition = Helpers.getKeysWithPosition(world, neighbor.x, neighbor.y);
       if (atPosition.length == 1) {
         attackTarget(player, atPosition);
-       }
+      }
     }
   }
 
@@ -37,20 +37,20 @@ contract AttackSystem is System {
       Player.deleteRecord(defender);
     } else {
       Health.set(defender, newHealth);
-    } 
+    }
   }
 
-function mooreNeighborhood(PositionData memory center) internal pure returns (PositionData[] memory) {
+  function mooreNeighborhood(PositionData memory center) internal pure returns (PositionData[] memory) {
     PositionData[] memory neighbors = new PositionData[](9);
     uint256 index = 0;
 
     for (int32 x = -1; x <= 1; x++) {
-        for (int32 y = -1; y <= 1; y++) {
-            neighbors[index] = PositionData(center.x + x, center.y + y);
-            index++;
-        }
+      for (int32 y = -1; y <= 1; y++) {
+        neighbors[index] = PositionData(center.x + x, center.y + y);
+        index++;
+      }
     }
 
     return neighbors;
-}
+  }
 }

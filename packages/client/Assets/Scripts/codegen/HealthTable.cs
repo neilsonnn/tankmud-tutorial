@@ -2,122 +2,108 @@
 
 #nullable enable
 using System;
-using mud.Client;
-using mud.Network.schemas;
-using mud.Unity;
+using mud;
 using UniRx;
 using Property = System.Collections.Generic.Dictionary<string, object>;
 
-namespace DefaultNamespace
+namespace mudworld
 {
-    public class HealthTableUpdate : TypedRecordUpdate<Tuple<HealthTable?, HealthTable?>> { }
-
-    public class HealthTable : IMudTable
+    public class HealthTable : MUDTable
     {
-        public static readonly TableId TableId = new("", "Health");
-
-        public ulong? value;
-
-        public static IObservable<HealthTableUpdate> OnRecordUpdate()
+        public class HealthTableUpdate : RecordUpdate
         {
-            return NetworkManager.Instance.ds.OnDataStoreUpdate
-                .Where(
-                    update =>
-                        update.TableId == TableId.ToString() && update.Type == UpdateType.SetField
-                )
-                .Select(
-                    update =>
-                        new HealthTableUpdate
-                        {
-                            TableId = update.TableId,
-                            Key = update.Key,
-                            Value = update.Value,
-                            TypedValue = MapUpdates(update.Value)
-                        }
-                );
+            public int? Value;
+            public int? PreviousValue;
         }
 
-        public static IObservable<HealthTableUpdate> OnRecordInsert()
+        public readonly static string ID = "Health";
+        public static RxTable Table
         {
-            return NetworkManager.Instance.ds.OnDataStoreUpdate
-                .Where(
-                    update =>
-                        update.TableId == TableId.ToString() && update.Type == UpdateType.SetRecord
-                )
-                .Select(
-                    update =>
-                        new HealthTableUpdate
-                        {
-                            TableId = update.TableId,
-                            Key = update.Key,
-                            Value = update.Value,
-                            TypedValue = MapUpdates(update.Value)
-                        }
-                );
+            get { return NetworkManager.Instance.ds.store[ID]; }
         }
 
-        public static IObservable<HealthTableUpdate> OnRecordDelete()
+        public override string GetTableId()
         {
-            return NetworkManager.Instance.ds.OnDataStoreUpdate
-                .Where(
-                    update =>
-                        update.TableId == TableId.ToString()
-                        && update.Type == UpdateType.DeleteRecord
-                )
-                .Select(
-                    update =>
-                        new HealthTableUpdate
-                        {
-                            TableId = update.TableId,
-                            Key = update.Key,
-                            Value = update.Value,
-                            TypedValue = MapUpdates(update.Value)
-                        }
-                );
+            return ID;
         }
 
-        public static Tuple<HealthTable?, HealthTable?> MapUpdates(
-            Tuple<Property?, Property?> value
-        )
-        {
-            HealthTable? current = null;
-            HealthTable? previous = null;
+        public int? Value;
 
-            if (value.Item1 != null)
+        public override Type TableType()
+        {
+            return typeof(HealthTable);
+        }
+
+        public override Type TableUpdateType()
+        {
+            return typeof(HealthTableUpdate);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            HealthTable other = (HealthTable)obj;
+
+            if (other == null)
             {
-                try
+                return false;
+            }
+            if (Value != other.Value)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public override void SetValues(params object[] functionParameters)
+        {
+            Value = (int)functionParameters[0];
+        }
+
+        public static IObservable<RecordUpdate> GetHealthTableUpdates()
+        {
+            HealthTable mudTable = new HealthTable();
+
+            return NetworkManager.Instance.sync.onUpdate
+                .Where(update => update.Table.Name == ID)
+                .Select(recordUpdate =>
                 {
-                    current = new HealthTable
-                    {
-                        value = value.Item1.TryGetValue("value", out var valueVal)
-                            ? (ulong)valueVal
-                            : default,
-                    };
-                }
-                catch (InvalidCastException)
-                {
-                    current = new HealthTable { value = null, };
-                }
+                    return mudTable.RecordUpdateToTyped(recordUpdate);
+                });
+        }
+
+        public override void PropertyToTable(Property property)
+        {
+            Value = (int)property["value"];
+        }
+
+        public override RecordUpdate RecordUpdateToTyped(RecordUpdate recordUpdate)
+        {
+            var currentValue = recordUpdate.CurrentRecordValue as Property;
+            var previousValue = recordUpdate.PreviousRecordValue as Property;
+            int? currentValueTyped = null;
+            int? previousValueTyped = null;
+
+            if (currentValue != null && currentValue.ContainsKey("value"))
+            {
+                currentValueTyped = (int)currentValue["value"];
             }
 
-            if (value.Item2 != null)
+            if (previousValue != null && previousValue.ContainsKey("value"))
             {
-                try
-                {
-                    previous = new HealthTable
-                    {
-                        value = value.Item2.TryGetValue("value", out var valueVal)
-                            ? (ulong)valueVal
-                            : default,
-                    };
-                }
-                catch (InvalidCastException)
-                {
-                    previous = new HealthTable { value = null, };
-                }
+                previousValueTyped = (int)previousValue["value"];
             }
 
-            return new Tuple<HealthTable?, HealthTable?>(current, previous);
+            return new HealthTableUpdate
+            {
+                Table = recordUpdate.Table,
+                CurrentRecordValue = recordUpdate.CurrentRecordValue,
+                PreviousRecordValue = recordUpdate.PreviousRecordValue,
+                CurrentRecordKey = recordUpdate.CurrentRecordKey,
+                PreviousRecordKey = recordUpdate.PreviousRecordKey,
+                Type = recordUpdate.Type,
+                Value = currentValueTyped,
+                PreviousValue = previousValueTyped,
+            };
         }
     }
 }

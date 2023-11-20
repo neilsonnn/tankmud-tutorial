@@ -1,8 +1,7 @@
-using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using IWorld.ContractDefinition;
-using mud.Unity;
+using mud;
 using UnityEngine;
 
 public class TankShooting : MonoBehaviour
@@ -24,11 +23,10 @@ public class TankShooting : MonoBehaviour
 
 	private async UniTaskVoid SendFireTxAsync(int x, int y)
 	{
-		try
-		{
-			await NetworkManager.Instance.worldSend.TxExecute<AttackFunction>(x, y);
+		try {
+			await TxManager.SendDirect<AttackFunction>(System.Convert.ToInt32(x), System.Convert.ToInt32(y));
 		}
-		catch (Exception ex)
+		catch (System.Exception ex)
 		{
 			Debug.LogException(ex);
 		}
@@ -47,22 +45,20 @@ public class TankShooting : MonoBehaviour
 
 			var ray = _camera.ScreenPointToRay(Input.mousePosition);
 			if (!Physics.Raycast(ray, out var hit)) return;
-			var dest = hit.point;
-			dest.x = Mathf.Floor(dest.x);
-			dest.y = Mathf.Floor(dest.y);
-			dest.z = Mathf.Floor(dest.z);
+			Vector3 dest = hit.point;
+			dest.x = Mathf.RoundToInt(dest.x);
+			dest.y = Mathf.RoundToInt(dest.y);
+			dest.z = Mathf.RoundToInt(dest.z);
 
 			transform.position = dest;
 
-			if (Input.GetMouseButtonDown(0) && !_fired)
-			{
+			if (Input.GetMouseButtonDown(0) && !_fired) {
 				_fired = true;
-				SendFireTxAsync(Convert.ToInt32(dest.x), Convert.ToInt32(dest.z)).Forget();
+				SendFireTxAsync((int)dest.x, (int)dest.z).Forget();
 				_fired = false;
 			}
 		}
-		else
-		{
+		else {
 			if (!_rangeVis) return;
 			_renderer.enabled = false;
 			_rangeVis = false;

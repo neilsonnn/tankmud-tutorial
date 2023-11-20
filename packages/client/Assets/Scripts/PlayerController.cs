@@ -4,9 +4,7 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using DefaultNamespace;
 using IWorld.ContractDefinition;
-using mud.Client;
-using mud.Network.schemas;
-using mud.Unity;
+using mud;
 using UniRx;
 using UnityEngine;
 using ObservableExtensions = UniRx.ObservableExtensions;
@@ -14,10 +12,10 @@ using ObservableExtensions = UniRx.ObservableExtensions;
 public class PlayerController : MonoBehaviour
 {
     private Camera _camera;
-    private Vector3? _destination;
+    private Vector3 destination;
+    private PositionComponent posComponent;
 
     public GameObject destinationMarker;
-    private GameObject _destinationMarker;
 
     private bool _hasDestination;
     private IDisposable? _disposer;
@@ -35,37 +33,22 @@ public class PlayerController : MonoBehaviour
 
         _player = GetComponent<PlayerSync>();
 
-        var positionTable = new TableId("", "Position");
-        var query = new Query().In(positionTable);
-        var sub = ds.RxQuery(query);
-        _disposer = ObservableExtensions.Subscribe(sub.ObserveOnMainThread(), OnChainPositionUpdate);
+        posComponent.OnUpdated += UpdatePosition;
+
     }
 
-    private void OnChainPositionUpdate((List<Record> SetRecords, List<Record> RemovedRecords) update)
-    {
-        if (_player.key == null) return;
-        if (_player.IsLocalPlayer()) return;
-        foreach (var setRecord in update.SetRecords)
-        {
-            if (setRecord.key != _player.key) continue;
-            var currentValue = setRecord.value;
-            if (currentValue == null) continue;
-            var x = Convert.ToSingle(currentValue["x"]);
-            var y = Convert.ToSingle(currentValue["y"]);
-            _destination = new Vector3(x, 0, y);
-        }
-    }
 
+    void UpdatePosition() {
+        destination = posComponent.position;   
+    }
 
     // TODO: Send tx
     private async UniTaskVoid SendMoveTxAsync(int x, int y)
     {
-        try
-        {
-            await NetworkManager.Instance.worldSend.TxExecute<MoveFunction>(x, y);
+        try {
+            await TxManager.SendDirect<MoveFunction>(Convert.ToInt32(x), Convert.ToInt32(y));
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             // Handle your exception here
             Debug.LogException(ex);
         }
@@ -74,34 +57,27 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         var pos = transform.position;
-        if (_destination.HasValue && Vector3.Distance(pos, _destination.Value) < 0.5)
-        {
-            _destination = null;
-            if (_destinationMarker != null)
-            {
-                Destroy(_destinationMarker);
-            }
-        }
-        else
-        {
-            if (_destination != null)
-            {
-                var newPosition = Vector3.Lerp(transform.position, _destination.Value, Time.deltaTime);
-                var currentTransform = transform;
-                currentTransform.position = newPosition;
+        if (Vector3.Distance(pos, destination) > 0.5) {
 
-                // Determine the new rotation
-                var lookRotation = Quaternion.LookRotation(_destination.Value - currentTransform.position);
-                var newRotation = Quaternion.Lerp(transform.rotation, lookRotation, Time.deltaTime);
-                transform.rotation = newRotation;
-            }
+            var newPosition = Vector3.Lerp(transform.position, destination, Time.deltaTime);
+            transform.position = newPosition;
+
+            // Determine the new rotation
+            var lookRotation = Quaternion.LookRotation(destination - transform.position);
+            var newRotation = Quaternion.Lerp(transform.rotation, lookRotation, Time.deltaTime);
+            transform.rotation = newRotation;
+    
+        } else {
+            destinationMarker.SetActive(false);
         }
 
         // TODO: Early return if not local player 
         if (!_player.IsLocalPlayer() || _target.RangeVisible) return;
+
         if (Input.GetMouseButtonDown(0))
         {
-           
+            destinationMarker.SetActive(true);
+
             var ray = _camera.ScreenPointToRay(Input.mousePosition);
             if (!Physics.Raycast(ray, out var hit)) return;
             if (hit.collider.name != "floor-large") return;
@@ -110,14 +86,7 @@ public class PlayerController : MonoBehaviour
             dest.x = Mathf.Floor(dest.x);
             dest.y = Mathf.Floor(dest.y);
             dest.z = Mathf.Floor(dest.z);
-            _destination = dest;
-
-            if (_destinationMarker != null)
-            {
-                Destroy(_destinationMarker);
-            }
-
-            _destinationMarker = Instantiate(destinationMarker, dest, Quaternion.identity);
+            destination = dest;
             SendMoveTxAsync(Convert.ToInt32(dest.x), Convert.ToInt32(dest.z)).Forget();
         }
     }

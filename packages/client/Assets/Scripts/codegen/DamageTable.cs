@@ -2,122 +2,108 @@
 
 #nullable enable
 using System;
-using mud.Client;
-using mud.Network.schemas;
-using mud.Unity;
+using mud;
 using UniRx;
 using Property = System.Collections.Generic.Dictionary<string, object>;
 
-namespace DefaultNamespace
+namespace mudworld
 {
-    public class DamageTableUpdate : TypedRecordUpdate<Tuple<DamageTable?, DamageTable?>> { }
-
-    public class DamageTable : IMudTable
+    public class DamageTable : MUDTable
     {
-        public static readonly TableId TableId = new("", "Damage");
-
-        public ulong? value;
-
-        public static IObservable<DamageTableUpdate> OnRecordUpdate()
+        public class DamageTableUpdate : RecordUpdate
         {
-            return NetworkManager.Instance.ds.OnDataStoreUpdate
-                .Where(
-                    update =>
-                        update.TableId == TableId.ToString() && update.Type == UpdateType.SetField
-                )
-                .Select(
-                    update =>
-                        new DamageTableUpdate
-                        {
-                            TableId = update.TableId,
-                            Key = update.Key,
-                            Value = update.Value,
-                            TypedValue = MapUpdates(update.Value)
-                        }
-                );
+            public int? Value;
+            public int? PreviousValue;
         }
 
-        public static IObservable<DamageTableUpdate> OnRecordInsert()
+        public readonly static string ID = "Damage";
+        public static RxTable Table
         {
-            return NetworkManager.Instance.ds.OnDataStoreUpdate
-                .Where(
-                    update =>
-                        update.TableId == TableId.ToString() && update.Type == UpdateType.SetRecord
-                )
-                .Select(
-                    update =>
-                        new DamageTableUpdate
-                        {
-                            TableId = update.TableId,
-                            Key = update.Key,
-                            Value = update.Value,
-                            TypedValue = MapUpdates(update.Value)
-                        }
-                );
+            get { return NetworkManager.Instance.ds.store[ID]; }
         }
 
-        public static IObservable<DamageTableUpdate> OnRecordDelete()
+        public override string GetTableId()
         {
-            return NetworkManager.Instance.ds.OnDataStoreUpdate
-                .Where(
-                    update =>
-                        update.TableId == TableId.ToString()
-                        && update.Type == UpdateType.DeleteRecord
-                )
-                .Select(
-                    update =>
-                        new DamageTableUpdate
-                        {
-                            TableId = update.TableId,
-                            Key = update.Key,
-                            Value = update.Value,
-                            TypedValue = MapUpdates(update.Value)
-                        }
-                );
+            return ID;
         }
 
-        public static Tuple<DamageTable?, DamageTable?> MapUpdates(
-            Tuple<Property?, Property?> value
-        )
-        {
-            DamageTable? current = null;
-            DamageTable? previous = null;
+        public int? Value;
 
-            if (value.Item1 != null)
+        public override Type TableType()
+        {
+            return typeof(DamageTable);
+        }
+
+        public override Type TableUpdateType()
+        {
+            return typeof(DamageTableUpdate);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            DamageTable other = (DamageTable)obj;
+
+            if (other == null)
             {
-                try
+                return false;
+            }
+            if (Value != other.Value)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public override void SetValues(params object[] functionParameters)
+        {
+            Value = (int)functionParameters[0];
+        }
+
+        public static IObservable<RecordUpdate> GetDamageTableUpdates()
+        {
+            DamageTable mudTable = new DamageTable();
+
+            return NetworkManager.Instance.sync.onUpdate
+                .Where(update => update.Table.Name == ID)
+                .Select(recordUpdate =>
                 {
-                    current = new DamageTable
-                    {
-                        value = value.Item1.TryGetValue("value", out var valueVal)
-                            ? (ulong)valueVal
-                            : default,
-                    };
-                }
-                catch (InvalidCastException)
-                {
-                    current = new DamageTable { value = null, };
-                }
+                    return mudTable.RecordUpdateToTyped(recordUpdate);
+                });
+        }
+
+        public override void PropertyToTable(Property property)
+        {
+            Value = (int)property["value"];
+        }
+
+        public override RecordUpdate RecordUpdateToTyped(RecordUpdate recordUpdate)
+        {
+            var currentValue = recordUpdate.CurrentRecordValue as Property;
+            var previousValue = recordUpdate.PreviousRecordValue as Property;
+            int? currentValueTyped = null;
+            int? previousValueTyped = null;
+
+            if (currentValue != null && currentValue.ContainsKey("value"))
+            {
+                currentValueTyped = (int)currentValue["value"];
             }
 
-            if (value.Item2 != null)
+            if (previousValue != null && previousValue.ContainsKey("value"))
             {
-                try
-                {
-                    previous = new DamageTable
-                    {
-                        value = value.Item2.TryGetValue("value", out var valueVal)
-                            ? (ulong)valueVal
-                            : default,
-                    };
-                }
-                catch (InvalidCastException)
-                {
-                    previous = new DamageTable { value = null, };
-                }
+                previousValueTyped = (int)previousValue["value"];
             }
 
-            return new Tuple<DamageTable?, DamageTable?>(current, previous);
+            return new DamageTableUpdate
+            {
+                Table = recordUpdate.Table,
+                CurrentRecordValue = recordUpdate.CurrentRecordValue,
+                PreviousRecordValue = recordUpdate.PreviousRecordValue,
+                CurrentRecordKey = recordUpdate.CurrentRecordKey,
+                PreviousRecordKey = recordUpdate.PreviousRecordKey,
+                Type = recordUpdate.Type,
+                Value = currentValueTyped,
+                PreviousValue = previousValueTyped,
+            };
         }
     }
 }

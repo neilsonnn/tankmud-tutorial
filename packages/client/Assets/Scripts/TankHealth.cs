@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using UniRx;
 using DefaultNamespace;
-using mud.Client;
-using mud.Network.schemas;
-using mud.Unity;
+using mud;
 using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.UI;

@@ -2,121 +2,132 @@
 
 #nullable enable
 using System;
-using mud.Client;
-using mud.Network.schemas;
-using mud.Unity;
+using mud;
 using UniRx;
 using Property = System.Collections.Generic.Dictionary<string, object>;
 
-namespace DefaultNamespace
+namespace mudworld
 {
-    public class PositionTableUpdate : TypedRecordUpdate<Tuple<PositionTable?, PositionTable?>> { }
-
-    public class PositionTable : IMudTable
+    public class PositionTable : MUDTable
     {
-        public static readonly TableId TableId = new("", "Position");
-
-        public long? x;
-        public long? y;
-
-        public static IObservable<PositionTableUpdate> OnRecordUpdate()
+        public class PositionTableUpdate : RecordUpdate
         {
-            return NetworkManager.Instance.ds.OnDataStoreUpdate
-                .Where(
-                    update =>
-                        update.TableId == TableId.ToString() && update.Type == UpdateType.SetField
-                )
-                .Select(
-                    update =>
-                        new PositionTableUpdate
-                        {
-                            TableId = update.TableId,
-                            Key = update.Key,
-                            Value = update.Value,
-                            TypedValue = MapUpdates(update.Value)
-                        }
-                );
+            public int? X;
+            public int? PreviousX;
+            public int? Y;
+            public int? PreviousY;
         }
 
-        public static IObservable<PositionTableUpdate> OnRecordInsert()
+        public readonly static string ID = "Position";
+        public static RxTable Table
         {
-            return NetworkManager.Instance.ds.OnDataStoreUpdate
-                .Where(
-                    update =>
-                        update.TableId == TableId.ToString() && update.Type == UpdateType.SetRecord
-                )
-                .Select(
-                    update =>
-                        new PositionTableUpdate
-                        {
-                            TableId = update.TableId,
-                            Key = update.Key,
-                            Value = update.Value,
-                            TypedValue = MapUpdates(update.Value)
-                        }
-                );
+            get { return NetworkManager.Instance.ds.store[ID]; }
         }
 
-        public static IObservable<PositionTableUpdate> OnRecordDelete()
+        public override string GetTableId()
         {
-            return NetworkManager.Instance.ds.OnDataStoreUpdate
-                .Where(
-                    update =>
-                        update.TableId == TableId.ToString()
-                        && update.Type == UpdateType.DeleteRecord
-                )
-                .Select(
-                    update =>
-                        new PositionTableUpdate
-                        {
-                            TableId = update.TableId,
-                            Key = update.Key,
-                            Value = update.Value,
-                            TypedValue = MapUpdates(update.Value)
-                        }
-                );
+            return ID;
         }
 
-        public static Tuple<PositionTable?, PositionTable?> MapUpdates(
-            Tuple<Property?, Property?> value
-        )
-        {
-            PositionTable? current = null;
-            PositionTable? previous = null;
+        public int? X;
+        public int? Y;
 
-            if (value.Item1 != null)
+        public override Type TableType()
+        {
+            return typeof(PositionTable);
+        }
+
+        public override Type TableUpdateType()
+        {
+            return typeof(PositionTableUpdate);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            PositionTable other = (PositionTable)obj;
+
+            if (other == null)
             {
-                try
+                return false;
+            }
+            if (X != other.X)
+            {
+                return false;
+            }
+            if (Y != other.Y)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public override void SetValues(params object[] functionParameters)
+        {
+            X = (int)functionParameters[0];
+
+            Y = (int)functionParameters[1];
+        }
+
+        public static IObservable<RecordUpdate> GetPositionTableUpdates()
+        {
+            PositionTable mudTable = new PositionTable();
+
+            return NetworkManager.Instance.sync.onUpdate
+                .Where(update => update.Table.Name == ID)
+                .Select(recordUpdate =>
                 {
-                    current = new PositionTable
-                    {
-                        x = value.Item1.TryGetValue("x", out var xVal) ? (long)xVal : default,
-                        y = value.Item1.TryGetValue("y", out var yVal) ? (long)yVal : default,
-                    };
-                }
-                catch (InvalidCastException)
-                {
-                    current = new PositionTable { x = null, y = null, };
-                }
+                    return mudTable.RecordUpdateToTyped(recordUpdate);
+                });
+        }
+
+        public override void PropertyToTable(Property property)
+        {
+            X = (int)property["x"];
+            Y = (int)property["y"];
+        }
+
+        public override RecordUpdate RecordUpdateToTyped(RecordUpdate recordUpdate)
+        {
+            var currentValue = recordUpdate.CurrentRecordValue as Property;
+            var previousValue = recordUpdate.PreviousRecordValue as Property;
+            int? currentXTyped = null;
+            int? previousXTyped = null;
+
+            if (currentValue != null && currentValue.ContainsKey("x"))
+            {
+                currentXTyped = (int)currentValue["x"];
             }
 
-            if (value.Item2 != null)
+            if (previousValue != null && previousValue.ContainsKey("x"))
             {
-                try
-                {
-                    previous = new PositionTable
-                    {
-                        x = value.Item2.TryGetValue("x", out var xVal) ? (long)xVal : default,
-                        y = value.Item2.TryGetValue("y", out var yVal) ? (long)yVal : default,
-                    };
-                }
-                catch (InvalidCastException)
-                {
-                    previous = new PositionTable { x = null, y = null, };
-                }
+                previousXTyped = (int)previousValue["x"];
+            }
+            int? currentYTyped = null;
+            int? previousYTyped = null;
+
+            if (currentValue != null && currentValue.ContainsKey("y"))
+            {
+                currentYTyped = (int)currentValue["y"];
             }
 
-            return new Tuple<PositionTable?, PositionTable?>(current, previous);
+            if (previousValue != null && previousValue.ContainsKey("y"))
+            {
+                previousYTyped = (int)previousValue["y"];
+            }
+
+            return new PositionTableUpdate
+            {
+                Table = recordUpdate.Table,
+                CurrentRecordValue = recordUpdate.CurrentRecordValue,
+                PreviousRecordValue = recordUpdate.PreviousRecordValue,
+                CurrentRecordKey = recordUpdate.CurrentRecordKey,
+                PreviousRecordKey = recordUpdate.PreviousRecordKey,
+                Type = recordUpdate.Type,
+                X = currentXTyped,
+                PreviousX = previousXTyped,
+                Y = currentYTyped,
+                PreviousY = previousYTyped,
+            };
         }
     }
 }
