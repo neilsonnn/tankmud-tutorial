@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using DefaultNamespace;
 using IWorld.ContractDefinition;
 using mud;
 using UniRx;

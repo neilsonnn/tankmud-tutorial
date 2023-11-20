@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using UniRx;
-using DefaultNamespace;
 using mud;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -19,7 +18,6 @@ public class TankHealth : MonoBehaviour
     public Color m_ZeroHealthColor = Color.red;
     public GameObject m_ExplosionPrefab;
     public GameObject shell;
-    public PlayerSync _player;
     private ParticleSystem m_ExplosionParticles;
     private bool m_Dead;
     private CompositeDisposable _disposable = new();
@@ -31,7 +29,6 @@ public class TankHealth : MonoBehaviour
     {
         m_ExplosionParticles = Instantiate(m_ExplosionPrefab).GetComponent<ParticleSystem>();
         m_ExplosionParticles.gameObject.SetActive(false);
-        _player = GetComponent<PlayerSync>();
     }
 
 

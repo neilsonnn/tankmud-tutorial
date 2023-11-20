@@ -7,7 +7,8 @@ using mudworld;
 public class PlayerComponent : MUDComponent
 {
     public static PlayerComponent LocalPlayer;
-    
+    public bool IsLocalPlayer;
+
     protected override void PostInit() {
         base.PostInit();
 
@@ -20,6 +21,7 @@ public class PlayerComponent : MUDComponent
     protected override void UpdateComponent(MUDTable table, UpdateInfo updateInfo) {
 
         if(NetworkManager.LocalKey == Entity.Key) {
+            IsLocalPlayer = true;
             LocalPlayer = this;
         }
 
