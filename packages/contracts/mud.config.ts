@@ -10,11 +10,11 @@ export default mudConfig({
     },
     Health: {
       valueSchema: {
-        value: "uint32",
+        value: "int32",
       },
     },
     Player: "bool",
-    Damage: "uint32",
+    Damage: "int32",
   },
   modules: [
     {

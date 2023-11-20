@@ -55,7 +55,7 @@ library Damage {
    */
   function getValueSchema() internal pure returns (Schema) {
     SchemaType[] memory _valueSchema = new SchemaType[](1);
-    _valueSchema[0] = SchemaType.UINT32;
+    _valueSchema[0] = SchemaType.INT32;
 
     return SchemaLib.encode(_valueSchema);
   }
@@ -102,73 +102,73 @@ library Damage {
   /**
    * @notice Get value.
    */
-  function getValue(bytes32 key) internal view returns (uint32 value) {
+  function getValue(bytes32 key) internal view returns (int32 value) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
     bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 0, _fieldLayout);
-    return (uint32(bytes4(_blob)));
+    return (int32(uint32(bytes4(_blob))));
   }
 
   /**
    * @notice Get value.
    */
-  function _getValue(bytes32 key) internal view returns (uint32 value) {
+  function _getValue(bytes32 key) internal view returns (int32 value) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
     bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 0, _fieldLayout);
-    return (uint32(bytes4(_blob)));
+    return (int32(uint32(bytes4(_blob))));
   }
 
   /**
    * @notice Get value (using the specified store).
    */
-  function getValue(IStore _store, bytes32 key) internal view returns (uint32 value) {
+  function getValue(IStore _store, bytes32 key) internal view returns (int32 value) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
     bytes32 _blob = _store.getStaticField(_tableId, _keyTuple, 0, _fieldLayout);
-    return (uint32(bytes4(_blob)));
+    return (int32(uint32(bytes4(_blob))));
   }
 
   /**
    * @notice Get value.
    */
-  function get(bytes32 key) internal view returns (uint32 value) {
+  function get(bytes32 key) internal view returns (int32 value) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
     bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 0, _fieldLayout);
-    return (uint32(bytes4(_blob)));
+    return (int32(uint32(bytes4(_blob))));
   }
 
   /**
    * @notice Get value.
    */
-  function _get(bytes32 key) internal view returns (uint32 value) {
+  function _get(bytes32 key) internal view returns (int32 value) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
     bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 0, _fieldLayout);
-    return (uint32(bytes4(_blob)));
+    return (int32(uint32(bytes4(_blob))));
   }
 
   /**
    * @notice Get value (using the specified store).
    */
-  function get(IStore _store, bytes32 key) internal view returns (uint32 value) {
+  function get(IStore _store, bytes32 key) internal view returns (int32 value) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
     bytes32 _blob = _store.getStaticField(_tableId, _keyTuple, 0, _fieldLayout);
-    return (uint32(bytes4(_blob)));
+    return (int32(uint32(bytes4(_blob))));
   }
 
   /**
    * @notice Set value.
    */
-  function setValue(bytes32 key, uint32 value) internal {
+  function setValue(bytes32 key, int32 value) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
@@ -178,7 +178,7 @@ library Damage {
   /**
    * @notice Set value.
    */
-  function _setValue(bytes32 key, uint32 value) internal {
+  function _setValue(bytes32 key, int32 value) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
@@ -188,7 +188,7 @@ library Damage {
   /**
    * @notice Set value (using the specified store).
    */
-  function setValue(IStore _store, bytes32 key, uint32 value) internal {
+  function setValue(IStore _store, bytes32 key, int32 value) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
@@ -198,7 +198,7 @@ library Damage {
   /**
    * @notice Set value.
    */
-  function set(bytes32 key, uint32 value) internal {
+  function set(bytes32 key, int32 value) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
@@ -208,7 +208,7 @@ library Damage {
   /**
    * @notice Set value.
    */
-  function _set(bytes32 key, uint32 value) internal {
+  function _set(bytes32 key, int32 value) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
@@ -218,7 +218,7 @@ library Damage {
   /**
    * @notice Set value (using the specified store).
    */
-  function set(IStore _store, bytes32 key, uint32 value) internal {
+  function set(IStore _store, bytes32 key, int32 value) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
@@ -259,7 +259,7 @@ library Damage {
    * @notice Tightly pack static (fixed length) data using this table's schema.
    * @return The static data, encoded into a sequence of bytes.
    */
-  function encodeStatic(uint32 value) internal pure returns (bytes memory) {
+  function encodeStatic(int32 value) internal pure returns (bytes memory) {
     return abi.encodePacked(value);
   }
 
@@ -269,7 +269,7 @@ library Damage {
    * @return The lengths of the dynamic fields (packed into a single bytes32 value).
    * @return The dyanmic (variable length) data, encoded into a sequence of bytes.
    */
-  function encode(uint32 value) internal pure returns (bytes memory, PackedCounter, bytes memory) {
+  function encode(int32 value) internal pure returns (bytes memory, PackedCounter, bytes memory) {
     bytes memory _staticData = encodeStatic(value);
 
     PackedCounter _encodedLengths;

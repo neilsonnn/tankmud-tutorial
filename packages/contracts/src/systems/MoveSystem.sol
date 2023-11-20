@@ -11,6 +11,7 @@ contract MoveSystem is System {
   function move(int32 x, int32 y) public {
     // Get player key
     bytes32 player = Helpers.addressToEntityKey(address(_msgSender()));
+    require(Health.get(player) > 0, "target is dead");
 
     // Get world
     IWorld world = IWorld(_world());

@@ -20,15 +20,17 @@ public class HealthComponent : MUDComponent
 
     protected override void PostInit() {
         m_ExplosionParticles.gameObject.SetActive(false);
+
+        if(dead) {
+            Entity.Toggle(false);
+        }
     }
     
     protected override void UpdateComponent(MUDTable table, UpdateInfo updateInfo) {
 
         HealthTable update = table as HealthTable;
         health = (int)update.Value;
-        dead = health <= 0;
-
-        SetHealthUI();
+        dead = health <= 0 || updateInfo.UpdateType == UpdateType.DeleteRecord;
 
         if(Loaded) {
 
@@ -39,12 +41,18 @@ public class HealthComponent : MUDComponent
                 OnDeath();
             }
         }
+
+        SetHealthUI();
+
     }
 
     private void SetHealthUI() {
+        
         // Adjust the value and colour of the slider.
+        m_Slider.gameObject.SetActive(!dead);
         m_Slider.value = health;
         m_FillImage.color = health < 25 ? m_ZeroHealthColor : m_FullHealthColor;
+        
     }
 
     void OnHit() {
@@ -52,7 +60,12 @@ public class HealthComponent : MUDComponent
     }
 
      void OnDeath() {
-        m_ExplosionParticles.Play();
+
+        ParticleSystem deathParticles = Instantiate(m_ExplosionParticles, transform.position, Quaternion.identity);
+        deathParticles.transform.parent = null;
+        deathParticles.Play();
+        Destroy(deathParticles.gameObject, deathParticles.main.duration);
+
         Entity.Toggle(false);
     }
 
