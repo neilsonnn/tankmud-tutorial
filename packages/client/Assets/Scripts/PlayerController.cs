@@ -54,18 +54,17 @@ public class PlayerController : MonoBehaviour
 
     void UpdateInput() {
 
-        if (!player.Loaded || !player.IsLocalPlayer || _target.RangeVisible) return;
+        if (!player.Loaded || !player.IsLocalPlayer) return;
 
         if (Input.GetMouseButtonDown(0)) {
             destinationMarker.SetActive(true);
 
             var ray = _camera.ScreenPointToRay(Input.mousePosition);
             if (!Physics.Raycast(ray, out var hit)) return;
-            if (hit.collider.name != "floor-large") return;
 
             var dest = hit.point;
             dest.x = Mathf.Floor(dest.x);
-            dest.y = Mathf.Floor(dest.y);
+            dest.y = Mathf.Floor(0f);
             dest.z = Mathf.Floor(dest.z);
             destination = dest;
             SendMoveTxAsync(Convert.ToInt32(dest.x), Convert.ToInt32(dest.z)).Forget();

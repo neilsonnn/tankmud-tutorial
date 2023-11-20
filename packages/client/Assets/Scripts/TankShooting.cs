@@ -49,7 +49,7 @@ public class TankShooting : MonoBehaviour
 			_rangeVis = false;
 		}
 
-		if (Input.GetMouseButtonDown(0) && !_fired) {
+		if (Input.GetKeyDown(KeyCode.Space) && !_fired) {
 			_fired = true;
 			SendFireTxAsync((int)dest.x, (int)dest.z).Forget();
 			_fired = false;

@@ -29,7 +29,7 @@ public class HealthComponent : MUDComponent
     private void SetHealthUI() {
         // Adjust the value and colour of the slider.
         m_Slider.value = health;
-        m_FillImage.color = Color.Lerp(m_ZeroHealthColor, m_FullHealthColor, health / 100f);
+        m_FillImage.color = health < 25 ? m_ZeroHealthColor : m_FullHealthColor;
     }
 
     public void OnDeath()
@@ -56,7 +56,7 @@ public class HealthComponent : MUDComponent
         if(Loaded) {
 
             OnAttacked();
-            
+
             if(health <= 0) {
                 //do some death animation
                 OnDeath();
