@@ -16,13 +16,17 @@ public class PlayerController : MonoBehaviour
     private Vector3 destination;
     float distance;
 
-    public GameObject destinationMarker;
+    public GameObject _moveMarker;
     private TankShooting _target;
     Quaternion rotation;
 
     void Start() {
-
+        
+        //set initial position
         player.position.OnUpdated += UpdatePosition;
+        destination = player.position.position;
+
+        _moveMarker.SetActive(false);
 
         _target = GetComponentInChildren<TankShooting>(true);
         _camera = Camera.main;
@@ -63,20 +67,18 @@ public class PlayerController : MonoBehaviour
             var ray = _camera.ScreenPointToRay(Input.mousePosition);
             if (!Physics.Raycast(ray, out var hit)) return;
 
-            var dest = hit.point;
-            dest.x = Mathf.Floor(dest.x);
-            dest.y = Mathf.Floor(0f);
-            dest.z = Mathf.Floor(dest.z);
-
+            var dest = new Vector3(Mathf.RoundToInt(hit.point.x), 0, Mathf.RoundToInt(hit.point.z));
             if(dest == transform.position) {return;}
 
             // Determine the new rotation
-            distance = Vector3.Distance(transform.position, destination);
             destination = dest;
+
+            distance = Vector3.Distance(transform.position, destination);
             rotation = Quaternion.LookRotation(destination - transform.position);
 
-            destinationMarker.SetActive(true);
-            destinationMarker.transform.position = dest;
+            _moveMarker.SetActive(true);
+            _moveMarker.transform.position = dest;
+            _moveMarker.transform.rotation = rotation;
 
             //send tx
             SendMoveTxAsync(Convert.ToInt32(dest.x), Convert.ToInt32(dest.z)).Forget();
@@ -86,14 +88,12 @@ public class PlayerController : MonoBehaviour
 
     void UpdateTank() {
 
-        var pos = transform.position;
-
-        if (Vector3.Distance(pos, destination) > 0.1) {
-            transform.position = Vector3.MoveTowards(transform.position, destination, Time.deltaTime * distance);
+        if (Vector3.Distance(transform.position, destination) > 0.1) {
+            transform.position = Vector3.MoveTowards(transform.position, destination, Time.deltaTime * 2f * distance);
             transform.rotation = Quaternion.Lerp(transform.rotation, rotation, Time.deltaTime * 25f);
     
         } else {
-            destinationMarker.SetActive(false);
+            _moveMarker.SetActive(false);
         }
 
     }

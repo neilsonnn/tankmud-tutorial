@@ -6,18 +6,18 @@ using UnityEngine;
 
 public class TankShooting : MonoBehaviour
 {
+	public GameObject shell;
 	public Transform _tankTurret;
-	private bool _rangeVis;
-	public bool RangeVisible => _rangeVis;
+	public GameObject _moveIndicator;
+	public GameObject _attackIndicator;
+	public bool IsAttacking => _attackIndicator.activeInHierarchy;
 	private Camera _camera;
-	private Renderer _renderer;
 	private bool _fired;
 
 	// Start is called before the first frame update
 	void Start() {
 		_camera = Camera.main;
-		_renderer = GetComponentInChildren<Renderer>(true);
-		_renderer.enabled = false;
+		_attackIndicator.SetActive(false);
 	}
 
 	// Update is called once per frame
@@ -26,11 +26,7 @@ public class TankShooting : MonoBehaviour
 		var ray = _camera.ScreenPointToRay(Input.mousePosition);
 		if (!Physics.Raycast(ray, out var hit)) return;
 
-		Vector3 dest = hit.point;
-		dest.x = Mathf.RoundToInt(dest.x);
-		dest.y = Mathf.RoundToInt(dest.y);
-		dest.z = Mathf.RoundToInt(dest.z);
-
+		var dest = new Vector3(Mathf.RoundToInt(hit.point.x), 0, Mathf.RoundToInt(hit.point.z));
 		transform.position = dest;
 
 		//Turret rotation
@@ -38,23 +34,24 @@ public class TankShooting : MonoBehaviour
         var newTurretRotation = Quaternion.Lerp(transform.rotation, turretRotation, Time.deltaTime);
         _tankTurret.rotation = newTurretRotation;
 
-		if (Input.GetKey(KeyCode.E)) {
-			if (!_rangeVis) {
-				_renderer.enabled = true;
-				_rangeVis = true;
-			}
-		} else {
-			if (!_rangeVis) return;
-			_renderer.enabled = false;
-			_rangeVis = false;
-		}
+		bool attackInput = Input.GetKey(KeyCode.E);
 
-		if (Input.GetKeyDown(KeyCode.Space) && !_fired) {
+		_attackIndicator.SetActive(attackInput);
+		_moveIndicator.SetActive(!attackInput);
+
+		if (attackInput && Input.GetKeyDown(KeyCode.Space) && !_fired) {
 			_fired = true;
 			SendFireTxAsync((int)dest.x, (int)dest.z).Forget();
 			_fired = false;
 		}
 	}
+
+	public void Fire() {
+        var initialShellPosition = transform.position;
+        initialShellPosition.y += 2.5f;
+        Instantiate(shell, initialShellPosition, Quaternion.LookRotation(Vector3.down));
+    }
+
 
 	private async UniTaskVoid SendFireTxAsync(int x, int y) {
 		try {
