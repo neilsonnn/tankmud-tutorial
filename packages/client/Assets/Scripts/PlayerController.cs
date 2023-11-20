@@ -16,7 +16,6 @@ public class PlayerController : MonoBehaviour
 
     public GameObject destinationMarker;
 
-    private bool _hasDestination;
     private IDisposable? _disposer;
     private TankShooting _target;
 
@@ -26,8 +25,6 @@ public class PlayerController : MonoBehaviour
         var target = FindObjectOfType<TankShooting>();
         if (target == null) return;
         _target = target;
-
-        var ds = NetworkManager.Instance.ds;
 
     }
 

@@ -17,7 +17,7 @@ public class TankShooting : MonoBehaviour
 	void Start()
 	{
 		_camera = Camera.main;
-		_renderer = GetComponent<Renderer>();
+		_renderer = GetComponentInChildren<Renderer>(true);
 		_renderer.enabled = false;
 	}
 
