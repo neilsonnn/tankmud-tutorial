@@ -1,19 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
+import { IWorld } from "../codegen/world/IWorld.sol";
 import { System } from "@latticexyz/world/src/System.sol";
-import { getKeysWithValue } from "@latticexyz/world/src/modules/keyswithvalue/getKeysWithValue.sol";
-import { Damage, Position, PositionTableId, Player, PositionData, Health } from "../codegen/Tables.sol";
-import { addressToEntityKey } from "../addressToEntityKey.sol";
+import { Helpers } from "../Helpers.sol";
+
+import { Damage, Position, PositionTableId, Player, PositionData, Health } from "../codegen/index.sol";
 
 contract AttackSystem is System {
   function attack(int32 x, int32 y) public {
-    bytes32 player = addressToEntityKey(address(_msgSender()));
+    bytes32 player = Helpers.addressToEntityKey(address(_msgSender()));
+    IWorld world = IWorld(_world());
 
     PositionData[] memory neighbors = mooreNeighborhood(PositionData(x, y)); 
 
     for (uint i = 0; i < neighbors.length; i++) {
       PositionData memory neighbor = neighbors[i];
-      bytes32[] memory atPosition = getKeysWithValue(PositionTableId, Position.encode(neighbor.x, neighbor.y));
+      bytes32[] memory atPosition = Helpers.getKeysWithPosition(world, neighbor.x, neighbor.y);
       if (atPosition.length == 1) {
         attackTarget(player, atPosition);
        }

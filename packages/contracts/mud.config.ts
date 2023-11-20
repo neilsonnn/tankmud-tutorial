@@ -3,13 +3,13 @@ import { mudConfig, resolveTableId } from "@latticexyz/world/register";
 export default mudConfig({
   tables: {
     Position: {
-      schema: {
+      valueSchema: {
         x: "int32",
         y: "int32",
       },
     },
     Health: {
-      schema: {
+      valueSchema: {
         value: "uint32",
       },
     },
