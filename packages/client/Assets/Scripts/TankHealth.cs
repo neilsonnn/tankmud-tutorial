@@ -20,7 +20,6 @@ public class TankHealth : MonoBehaviour
     public GameObject shell;
     private ParticleSystem m_ExplosionParticles;
     private bool m_Dead;
-    private CompositeDisposable _disposable = new();
 
     private NetworkManager net;
 
@@ -63,10 +62,5 @@ public class TankHealth : MonoBehaviour
         m_ExplosionParticles.gameObject.SetActive(true);
         m_ExplosionParticles.Play();
         gameObject.SetActive(false);
-    }
-
-    private void OnDestroy()
-    {
-        _disposable?.Dispose();
     }
 }
