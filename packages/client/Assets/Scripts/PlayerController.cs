@@ -14,9 +14,11 @@ public class PlayerController : MonoBehaviour
 
     private Camera _camera;
     private Vector3 destination;
+    float distance;
 
     public GameObject destinationMarker;
     private TankShooting _target;
+    Quaternion rotation;
 
     void Start() {
 
@@ -65,28 +67,30 @@ public class PlayerController : MonoBehaviour
             dest.x = Mathf.Floor(dest.x);
             dest.y = Mathf.Floor(0f);
             dest.z = Mathf.Floor(dest.z);
-            destination = dest;
 
-            SendMoveTxAsync(Convert.ToInt32(dest.x), Convert.ToInt32(dest.z)).Forget();
+            if(dest == transform.position) {return;}
+
+            // Determine the new rotation
+            distance = Vector3.Distance(transform.position, destination);
+            destination = dest;
+            rotation = Quaternion.LookRotation(destination - transform.position);
 
             destinationMarker.SetActive(true);
             destinationMarker.transform.position = dest;
+
+            //send tx
+            SendMoveTxAsync(Convert.ToInt32(dest.x), Convert.ToInt32(dest.z)).Forget();
+
         }
     }
 
     void UpdateTank() {
 
         var pos = transform.position;
+
         if (Vector3.Distance(pos, destination) > 0.1) {
-
-            var newPosition = Vector3.MoveTowards(transform.position, destination, Time.deltaTime * 5f);
-            transform.position = newPosition;
-
-            // Determine the new rotation
-            var lookRotation = Quaternion.LookRotation(destination - transform.position);
-            var newRotation = Quaternion.Lerp(transform.rotation, lookRotation, Time.deltaTime * 50f);
-
-            transform.rotation = newRotation;
+            transform.position = Vector3.MoveTowards(transform.position, destination, Time.deltaTime * distance);
+            transform.rotation = Quaternion.Lerp(transform.rotation, rotation, Time.deltaTime * 25f);
     
         } else {
             destinationMarker.SetActive(false);
