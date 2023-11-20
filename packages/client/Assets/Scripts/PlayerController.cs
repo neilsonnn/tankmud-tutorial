@@ -26,7 +26,6 @@ public class PlayerController : MonoBehaviour
         player.health.transform.localPosition = Vector3.zero;
         player.health.transform.localRotation = Quaternion.identity;
         
-        
         //set initial position
         player.position.OnUpdated += UpdatePosition;
         destination = player.position.position;

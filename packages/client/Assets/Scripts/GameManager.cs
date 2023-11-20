@@ -9,7 +9,7 @@ public class GameManager : MonoBehaviour {
 	public Button spawn;
 
 	void Start() {
-		
+
 		spawn.gameObject.SetActive(false);
 
 		NetworkManager.OnInitialized += UpdateSpawn;
@@ -21,12 +21,12 @@ public class GameManager : MonoBehaviour {
 	}
 
 	void UpdateSpawn() {
-		var currentPlayer = MUDTable.GetRecord<PlayerTable>(NetworkManager.LocalKey);
-		spawn.gameObject.SetActive(currentPlayer == null);
+		var currentPlayer = MUDTable.GetTable<PlayerTable>(NetworkManager.LocalKey);
+		spawn.gameObject.SetActive(currentPlayer == null || currentPlayer.Value == false);
 	}
 
 	public async void SpawnPlayer() {
-		await TxManager.SendDirect<SpawnFunction>(0, 0);
+		await TxManager.SendDirect<SpawnFunction>(0, 2);
 	}
 
 }

@@ -9,6 +9,7 @@ public class PlayerComponent : MUDComponent
     public static PlayerComponent LocalPlayer;
 
     public bool IsLocalPlayer;
+    
     public PositionComponent position;
     public HealthComponent health;
 
@@ -20,8 +21,10 @@ public class PlayerComponent : MUDComponent
 
         if(IsLocalPlayer) {
             var cameraControl = GameObject.Find("CameraRig").GetComponent<CameraControl>();
-            cameraControl.m_Targets.Add(transform);
+            cameraControl.m_Targets.Add(transform); 
         }
+
+        Entity.SetName("Tank" + (IsLocalPlayer ? " (LocalPlayer)" : ""));
 
     }
     

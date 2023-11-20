@@ -468,9 +468,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   table: {fileID: 11400000, guid: f2d3a08e839a0fc4b95535606fd1a1be, type: 2}
-  requiredComponents:
-  - {fileID: 2364618700405762781, guid: e16b76ca01267774da6609ffe5c2953a, type: 3}
-  - {fileID: 6645604060330023078, guid: cc20fd294d171cc4c897ae751f7b67f7, type: 3}
+  requiredComponents: []
   canPool: 0
   entity: {fileID: 0}
   hasInit: 0
