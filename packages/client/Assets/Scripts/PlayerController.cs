@@ -11,31 +11,33 @@ using ObservableExtensions = UniRx.ObservableExtensions;
 public class PlayerController : MonoBehaviour
 {
     public PlayerComponent player;
+
     private Camera _camera;
     private Vector3 destination;
 
     public GameObject destinationMarker;
-
-    private IDisposable? _disposer;
     private TankShooting _target;
 
-    void Start()
-    {
+    void Start() {
+
+        player.position.OnUpdated += UpdatePosition;
+
+        _target = GetComponentInChildren<TankShooting>(true);
         _camera = Camera.main;
-        var target = FindObjectOfType<TankShooting>();
-        if (target == null) return;
-        _target = target;
 
     }
 
+    private void OnDestroy() {
+        if(player.position) player.position.OnUpdated -= UpdatePosition;
+
+    }
 
     void UpdatePosition() {
         destination = player.position.position;   
     }
 
     // TODO: Send tx
-    private async UniTaskVoid SendMoveTxAsync(int x, int y)
-    {
+    private async UniTaskVoid SendMoveTxAsync(int x, int y) {
         try {
             await TxManager.SendDirect<MoveFunction>(Convert.ToInt32(x), Convert.ToInt32(y));
         }
@@ -45,15 +47,14 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void Update()
-    {
+    void Update() {
         UpdateInput();
         UpdateTank();
     }
 
     void UpdateInput() {
 
-        if (!player.IsLocalPlayer || _target.RangeVisible) return;
+        if (!player.Loaded || !player.IsLocalPlayer || _target.RangeVisible) return;
 
         if (Input.GetMouseButtonDown(0)) {
             destinationMarker.SetActive(true);
@@ -90,8 +91,4 @@ public class PlayerController : MonoBehaviour
 
     }
 
-    private void OnDestroy()
-    {
-        _disposer?.Dispose();
-    }
 }
