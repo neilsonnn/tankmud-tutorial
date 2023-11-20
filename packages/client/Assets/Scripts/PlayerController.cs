@@ -38,6 +38,12 @@ public class PlayerController : MonoBehaviour
 
     }
 
+    void OnEnable() {
+        if(player.Loaded) {
+            transform.position = player.position.position;
+        }
+    }
+
     private void OnDestroy() {
         if(player.position) player.position.OnUpdated -= UpdatePosition;
 

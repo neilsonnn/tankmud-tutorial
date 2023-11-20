@@ -9,8 +9,8 @@ public class GameManager : MonoBehaviour {
 	public Button spawn;
 
 	void Start() {
-
-		UpdateSpawn();
+		
+		spawn.gameObject.SetActive(false);
 
 		NetworkManager.OnInitialized += UpdateSpawn;
 		PlayerComponent.OnPlayerSpawned += SetupLocalPlayer;

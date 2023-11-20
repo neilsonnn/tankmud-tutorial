@@ -35,11 +35,8 @@ public class HealthComponent : MUDComponent
         if(Loaded) {
 
             OnHit();
-
-            if(dead) {
-                //do some death animation
-                OnDeath();
-            }
+            CheckDeath();
+            
         }
 
         SetHealthUI();
@@ -47,7 +44,7 @@ public class HealthComponent : MUDComponent
     }
 
     private void SetHealthUI() {
-        
+
         // Adjust the value and colour of the slider.
         m_Slider.gameObject.SetActive(!dead);
         m_Slider.value = health;
@@ -59,14 +56,20 @@ public class HealthComponent : MUDComponent
         m_hurtParticles.Play();
     }
 
-     void OnDeath() {
+     void CheckDeath() {
 
-        ParticleSystem deathParticles = Instantiate(m_ExplosionParticles, transform.position, Quaternion.identity);
-        deathParticles.transform.parent = null;
-        deathParticles.Play();
-        Destroy(deathParticles.gameObject, deathParticles.main.duration);
+        if(dead) {
+            ParticleSystem deathParticles = Instantiate(m_ExplosionParticles, transform.position, Quaternion.identity);
+            deathParticles.transform.parent = null;
+            deathParticles.Play();
+            Destroy(deathParticles.gameObject, deathParticles.main.duration);
 
-        Entity.Toggle(false);
+            Entity.Toggle(false);
+        } else {
+            if(!gameObject.activeInHierarchy) {
+                Entity.Toggle(true);
+            }
+        }
     }
 
 
