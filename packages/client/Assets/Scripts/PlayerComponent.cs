@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using mud;
 using mudworld;
@@ -34,13 +32,7 @@ public class PlayerComponent : MUDComponent
             LocalPlayer = this;
             OnPlayerSpawned?.Invoke();
         }
-
-        if(Loaded) {
-
-        } else {
-
-    
-        }
+        
     }
 
 }
