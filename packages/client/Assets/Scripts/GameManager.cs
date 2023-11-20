@@ -1,28 +1,21 @@
-using System;
-using System.Collections.Generic;
 using IWorld.ContractDefinition;
 using mud;
-using UniRx;
+using mudworld;
 using UnityEngine;
-using ObservableExtensions = UniRx.ObservableExtensions;
 
-public class GameManager : MonoBehaviour
-{
-	public GameObject playerPrefab;
-
+public class GameManager : MonoBehaviour {
 
 	void Start() {
 		NetworkManager.OnInitialized += Spawn;
 	}
 
-	void Spawn() {
-		var addressKey = NetworkManager.LocalKey;
-		// var playerTable = new TableId("", "Player");
+	async void Spawn() {
 
-		// var currentPlayer = NetworkManager.Datastore.GetValue(playerTable, addressKey);
-		// if (currentPlayer == null) {
-		// 	await nm.worldSend.TxExecute<SpawnFunction>(0, 0);
-		// }
+		var currentPlayer = MUDTable.GetRecord<PlayerTable>(NetworkManager.LocalKey);
+
+		if (currentPlayer == null) {
+			await TxManager.SendDirect<SpawnFunction>(0, 0);
+		}
 
 	}
 
