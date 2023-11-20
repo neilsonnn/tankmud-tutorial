@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using mud;
 using mudworld;
+using System;
 
 public class PlayerComponent : MUDComponent
 {
+    public static Action OnPlayerSpawned;
     public static PlayerComponent LocalPlayer;
 
     public bool IsLocalPlayer;
@@ -30,6 +32,7 @@ public class PlayerComponent : MUDComponent
         if(NetworkManager.LocalKey == Entity.Key) {
             IsLocalPlayer = true;
             LocalPlayer = this;
+            OnPlayerSpawned?.Invoke();
         }
 
         if(Loaded) {
