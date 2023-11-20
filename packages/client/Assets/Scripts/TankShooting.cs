@@ -12,7 +12,6 @@ public class TankShooting : MonoBehaviour
 	public GameObject _attackIndicator;
 	public bool IsAttacking => _attackIndicator.activeInHierarchy;
 	private Camera _camera;
-	private bool _fired;
 
 	// Start is called before the first frame update
 	void Start() {
@@ -39,17 +38,16 @@ public class TankShooting : MonoBehaviour
 		_attackIndicator.SetActive(attackInput);
 		_moveIndicator.SetActive(!attackInput);
 
-		if (attackInput && Input.GetKeyDown(KeyCode.Space) && !_fired) {
-			_fired = true;
-			SendFireTxAsync((int)dest.x, (int)dest.z).Forget();
-			_fired = false;
+		if (Input.GetKeyDown(KeyCode.Space)) {
+			Fire();
 		}
 	}
 
 	public void Fire() {
         var initialShellPosition = transform.position;
-        initialShellPosition.y += 2.5f;
+        initialShellPosition.y += 3f;
         Instantiate(shell, initialShellPosition, Quaternion.LookRotation(Vector3.down));
+		SendFireTxAsync((int)transform.position.x, (int)transform.position.z).Forget();
     }
 
 

@@ -10,11 +10,13 @@ public class PlayerComponent : MUDComponent
 
     public bool IsLocalPlayer;
     public PositionComponent position;
+    public HealthComponent health;
 
     protected override void PostInit() {
         base.PostInit();
 
         position = Entity.GetMUDComponent<PositionComponent>();
+        health = Entity.GetMUDComponent<HealthComponent>();
 
         if(IsLocalPlayer) {
             var cameraControl = GameObject.Find("CameraRig").GetComponent<CameraControl>();

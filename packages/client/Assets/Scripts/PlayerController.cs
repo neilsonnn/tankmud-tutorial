@@ -21,6 +21,11 @@ public class PlayerController : MonoBehaviour
     Quaternion rotation;
 
     void Start() {
+
+        player.health.transform.parent = transform;
+        player.health.transform.localPosition = Vector3.zero;
+        player.health.transform.localRotation = Quaternion.identity;
+        
         
         //set initial position
         player.position.OnUpdated += UpdatePosition;

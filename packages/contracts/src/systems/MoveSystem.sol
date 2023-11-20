@@ -28,6 +28,6 @@ contract MoveSystem is System {
     Player.set(player, true);
     Position.set(player, x, y);
     Health.set(player, 100);
-    Damage.set(player, 10);
+    Damage.set(player, 40);
   }
 }
