@@ -57,7 +57,6 @@ public class PlayerController : MonoBehaviour
         if (!player.Loaded || !player.IsLocalPlayer) return;
 
         if (Input.GetMouseButtonDown(0)) {
-            destinationMarker.SetActive(true);
 
             var ray = _camera.ScreenPointToRay(Input.mousePosition);
             if (!Physics.Raycast(ray, out var hit)) return;
@@ -67,21 +66,26 @@ public class PlayerController : MonoBehaviour
             dest.y = Mathf.Floor(0f);
             dest.z = Mathf.Floor(dest.z);
             destination = dest;
+
             SendMoveTxAsync(Convert.ToInt32(dest.x), Convert.ToInt32(dest.z)).Forget();
+
+            destinationMarker.SetActive(true);
+            destinationMarker.transform.position = dest;
         }
     }
 
     void UpdateTank() {
 
         var pos = transform.position;
-        if (Vector3.Distance(pos, destination) > 0.5) {
+        if (Vector3.Distance(pos, destination) > 0.1) {
 
-            var newPosition = Vector3.Lerp(transform.position, destination, Time.deltaTime);
+            var newPosition = Vector3.MoveTowards(transform.position, destination, Time.deltaTime * 5f);
             transform.position = newPosition;
 
             // Determine the new rotation
             var lookRotation = Quaternion.LookRotation(destination - transform.position);
-            var newRotation = Quaternion.Lerp(transform.rotation, lookRotation, Time.deltaTime);
+            var newRotation = Quaternion.Lerp(transform.rotation, lookRotation, Time.deltaTime * 50f);
+
             transform.rotation = newRotation;
     
         } else {
