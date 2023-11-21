@@ -28,7 +28,9 @@ public class PlayerController : MonoBehaviour
         
         //set initial position
         player.position.OnUpdated += UpdatePosition;
+        rotation = Quaternion.identity;
         destination = player.position.position;
+        transform.position = destination;
 
         _moveMarker.SetActive(false);
 
@@ -98,8 +100,8 @@ public class PlayerController : MonoBehaviour
 
     void UpdateTank() {
 
-        if (Vector3.Distance(transform.position, destination) > 0.1) {
-            transform.position = Vector3.MoveTowards(transform.position, destination, Time.deltaTime * 2f * distance);
+        if (Vector3.Distance(transform.position, destination) > 0.02) {
+            transform.position = Vector3.MoveTowards(transform.position, destination, Time.deltaTime * 1f * distance);
             transform.rotation = Quaternion.Lerp(transform.rotation, rotation, Time.deltaTime * 25f);
     
         } else {
