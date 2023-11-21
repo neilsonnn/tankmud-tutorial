@@ -20,10 +20,7 @@ public class HealthComponent : MUDComponent
 
     protected override void PostInit() {
         m_ExplosionParticles.gameObject.SetActive(false);
-
-        if(dead) {
-            Entity.Toggle(false);
-        }
+        Entity.Toggle(!dead);
     }
     
     protected override void UpdateComponent(MUDTable table, UpdateInfo updateInfo) {
@@ -33,14 +30,11 @@ public class HealthComponent : MUDComponent
         dead = health <= 0 || updateInfo.UpdateType == UpdateType.DeleteRecord;
 
         if(Loaded) {
-
             OnHit();
             CheckDeath();
-            
         }
 
         SetHealthUI();
-
     }
 
     private void SetHealthUI() {
